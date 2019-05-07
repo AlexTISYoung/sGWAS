@@ -1,4 +1,4 @@
-# sibreg
+# sGWAS
 sGWAS is a python library for performing robust GWAS using sibling pairs with a random effects
 model for within family phenotypic correlations
 
