@@ -1,4 +1,4 @@
-Welcome to sibreg's documentation!
+Welcome to sGWAS's documentation!
 ==================================
 
 .. toctree::

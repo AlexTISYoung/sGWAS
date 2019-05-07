@@ -37,7 +37,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'sibreg'
+project = u'sGWAS'
 copyright = u'2017, Alexander Thomas Ian Strudwick Young'
 author = u'Alexander Thomas Ian Strudwick Young'
 
@@ -143,7 +143,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'sibreg', u'sibreg Documentation',
+    (master_doc, 'sGWAS', u'sGWAS Documentation',
      [author], 1)
 ]
 
@@ -154,8 +154,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'sibreg', u'sibreg Documentation',
-     author, 'sibreg', 'One line description of project.',
+    (master_doc, 'sGWAS', u'sGWAS Documentation',
+     author, 'sGWAS', 'One line description of project.',
      'Miscellaneous'),
 ]
 

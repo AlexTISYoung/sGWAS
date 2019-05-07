@@ -3,10 +3,10 @@ Guide
 
 **Introduction**
 
-sibreg is a python library for performing regression with correlated observations within-class.
+sGWAS is a python library for performing regression with correlated observations within-class.
 
 
-In the sibreg/bin there is a script: 'sGWAS.py' (:doc:`sGWAS`). This script performs GWAS that fits both within and between family effects.
+In the sGWAS/bin there is a script: 'sGWAS.py' (:doc:`sGWAS`). This script performs GWAS that fits both within and between family effects.
 
 The core model is the sibreg model (:class:`sibreg.model`), which consists of a linear model for the mean along
 with a vector of class labels that allows for correlations within-class. (The correlations within-class result
@@ -21,7 +21,7 @@ a :class:`sibreg.model`, and how to simulate a :class:`sibreg.model`.
 **Running tests**
 
 To check that the code is working properly and computing likelihoods and gradients accurately, you can
-run tests. In the sibreg/tests subdirectory, type
+run tests. In the sGWAS/tests subdirectory, type
 
     ``python tests.py``
 

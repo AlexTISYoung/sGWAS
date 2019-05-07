@@ -12,7 +12,7 @@ using sibling genotypes
 
 # Documentation
 
-Documentation for the modules and scripts is at: https://readthedocs.org/projects/sibreg/latest
+Documentation for the modules and scripts is at: https://sgwas.readthedocs.io/en/latest
 
 # Package Install Instructions
 

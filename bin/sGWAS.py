@@ -10,15 +10,33 @@ import code
 def neglog10pval(x,df):
     return -np.log10(np.e)*chi2.logsf(x,df)
 
-def vector_out(alpha_mle,digits=6):
+def vector_out(alpha_mle,n_X,digits=6):
 ##Output parameter estimates along with standard errors ##
     ## Calculate test statistics
-    alpha_est = alpha_l[0][1:3]
-    alpha_cov = alpha_l[1][1:3,1:3]
+    alpha_est = alpha_l[0][n_X:(n_X+2)]
+    alpha_cov = alpha_l[1][n_X:(n_X+2),n_X:(n_X+2)]
     alpha_ses = np.sqrt(np.diag(alpha_cov))
     alpha_out = str(round(alpha_est[0],digits))+'\t'+str(round(alpha_ses[0],digits))+'\t'
     alpha_out += str(round(alpha_est[1],digits))+'\t'+str(round(alpha_ses[1],digits))+'\t'
     alpha_out += str(round(alpha_cov[0,1]/(alpha_ses[0]*alpha_ses[1]),digits))+'\n'
+    return alpha_out
+
+def vector_out_sex(alpha_mle,n_X,digits=6):
+##Output parameter estimates along with standard errors ##
+    ## Calculate test statistics
+    alpha_est = alpha_l[0][n_X:(n_X+4)]
+    alpha_cov = alpha_l[1][n_X:(n_X+4),n_X:(n_X+4)]
+    alpha_ses = np.sqrt(np.diag(alpha_cov))
+    alpha_out = str(round(alpha_est[0],digits))+'\t'+str(round(alpha_ses[0],digits))+'\t'
+    alpha_out += str(round(alpha_est[1],digits))+'\t'+str(round(alpha_ses[1],digits))+'\t'
+    alpha_out += str(round(alpha_cov[0,1]/(alpha_ses[0]*alpha_ses[1]),digits))+'\n'
+    alpha_out = str(round(alpha_est[2], digits)) + '\t' + str(round(alpha_ses[2], digits)) + '\t'
+    alpha_out += str(round(alpha_est[3], digits)) + '\t' + str(round(alpha_ses[3], digits)) + '\t'
+    alpha_out += str(round(alpha_cov[2, 3] / (alpha_ses[2] * alpha_ses[3]), digits)) + '\t'
+    alpha_out += str(round(alpha_cov[0, 2] / (alpha_ses[0] * alpha_ses[2]), digits)) + '\t'
+    alpha_out += str(round(alpha_cov[0, 3] / (alpha_ses[0] * alpha_ses[3]), digits)) + '\t'
+    alpha_out += str(round(alpha_cov[1, 3] / (alpha_ses[1] * alpha_ses[3]), digits)) + '\t'
+    alpha_out += str(round(alpha_cov[1, 2] / (alpha_ses[1] * alpha_ses[2]), digits)) + '\t'
     return alpha_out
 
 def id_dict_make(ids):
@@ -80,8 +98,12 @@ if __name__ == '__main__':
     parser.add_argument('--max_missing',type=float,help='Ignore SNPs with greater percent missing calls than max_missing (default 5)',default=5)
     parser.add_argument('--append',action='store_true',default=False,help='Append results to existing output file with given outprefix (default overwrites existing')
     parser.add_argument('--no_covariate_estimates',action='store_true',default=False,help='Suppress output of covariate effect estimates')
-    parser.add_argument('--fix_VC', action='store_true', default=False,
-                        help='Fix the variance components to the values from the null model')
+    parser.add_argument('--fit_VC', action='store_true', default=False,
+                        help='Fit the variance components for each SNP')
+    parser.add_argument('--sex_index',type=int,default=-1,
+                        help='Column index (counting from 1) for the sex variable. '
+                                                    'Sex is assumed to be coded with zero for female and 1 for male. '
+                                                    'Specifying this fits interaction effects with sex for between and within family genetic effects')
     args=parser.parse_args()
 
     ####################### Read in data #########################
@@ -116,6 +138,9 @@ if __name__ == '__main__':
             pheno_ids = pheno_ids[pheno_in,:]
         # Normalise non-constant cols
         X_stds = np.std(X[:, 1:n_X], axis=0)
+        # Keep sex un-normalised
+        if args.sex_index > 0:
+            men = X[:,args.sex_index] == 1
         X[:, 1:n_X] = zscore(X[:, 1:n_X], axis=0)
     else:
         X = np.ones((int(y.shape[0]), 1))
@@ -161,8 +186,10 @@ if __name__ == '__main__':
     geno_id_match = np.array([geno_id_dict[tuple(x)] for x in pheno_ids])
     # Dictionary to look up rows for each family
     geno_fam_dict = {}
-    for fam in np.unique(pheno_ids[:,0]):
+    families = np.unique(pheno_ids[:, 0])
+    for fam in families:
         geno_fam_dict[fam] = np.where(test_chr.iid[:,0]==fam)[0]
+
 
 ### Get sample size
     n = y.shape[0]
@@ -179,7 +206,13 @@ if __name__ == '__main__':
         write_mode='wb'
     outfile=open(args.outprefix+'.models.gz',write_mode)
     if not args.append:
-        header='SNP\tfrequency\tn\tWF\tWF_se\tBF\tBF_se\tr_WF_BF\n'
+        if args.sex_index < 0:
+            header='SNP\tfrequency\tn\tWF\tWF_se\tBF\tBF_se\tr_WF_BF\n'
+        elif args.sex_inex > 0:
+            header='SNP\tfrequency\tn\tWF_F\tWF_F_se\tBF_F\tBF_F_se\tr_WF_BF_F\tWF_M\tWF_M_se\tBF_M\tBF_M_se\tr_WF_BF_M' \
+                   '\tr_WF_F_WF_M\tr_WF_F_BF_M\tr_BF_F_BF_M\tr_BF_F_WF_M\n'
+        else:
+            raise(ValueError('Invalid sex index 0'))
         outfile.write(header)
 
 ######### Fit Null Model ##########
@@ -210,8 +243,8 @@ if __name__ == '__main__':
                    delimiter='\t', fmt='%s')
 
     # Fit SNP specific models
-    ### Project out mean covariates
     if not args.fit_covariates:
+        ### Project out mean covariates
         # Residual y
         y=y-X.dot(null_alpha[0])
         # Reformulate fixed_effects
@@ -242,7 +275,6 @@ if __name__ == '__main__':
                 # Compute within family mean genotypes
                 g_mean = np.zeros((y.shape[0]))
                 g_mean[:] = np.nan
-                families = np.unique(pheno_ids[:,0])
                 for fam in families:
                     g_fam = genotypes[geno_fam_dict[fam],loc]
                     g_fam_not_NA = np.logical_not(np.isnan(g_fam))
@@ -258,11 +290,25 @@ if __name__ == '__main__':
                 n_loc = g_mean.shape[0]
                 fam_l = pheno_ids[not_na,0]
                 # Optimize model for SNP
-                X_l = np.ones((y_l.shape[0],3))
-                X_l[:,1] = test_gts-g_mean
-                X_l[:,2] = g_mean
+                if args.sex_index < 0:
+                    X_l = np.ones((y_l.shape[0],n_X+2))
+                    X_l[:,0:n_X] = X[not_na,:]
+                    X_l[:,n_X] = test_gts-g_mean
+                    X_l[:,n_X+1] = g_mean
+                elif args.sex_index > 0:
+                    X_l = np.ones((y_l.shape[0],n_X+4))
+                    X_l[:,0:n_X] = X[not_na,:]
+                    X_l[:,n_X] = test_gts-g_mean
+                    X_l[:,n_X+1] = g_mean
+                    X_l[:, (n_X+2):(n_X+4)] = X_l[:,n_X:(n_X+2)]
+                    # Set for women
+                    X_l[men, n_X:(n_X+2)] = 0
+                    # Set for men
+                    X_l[np.logical_not(men), (n_X+2):(n_X+4)] = 0
+                else:
+                    raise(ValueError('Invalid sex index 0'))
                 model_l = sibreg.model(y_l,X_l,fam_l)
-                if not args.fix_VC:
+                if args.fit_VC:
                     optim_l = model_l.optimize_model(np.array([null_optim['sigma2'],null_optim['tau']]))
                     if optim_l['success']:
                         alpha_l = model_l.alpha_mle(optim_l['tau'],optim_l['sigma2'],compute_cov = True)
@@ -270,7 +316,10 @@ if __name__ == '__main__':
                         print('Maximisation of likelihood failed for for ' + sid[loc])
                 else:
                     alpha_l = model_l.alpha_mle(null_optim['tau'],null_optim['sigma2'],compute_cov = True)
-                alpha_out = str(n_loc) + '\t' + vector_out(alpha_l)
+                if args.sex_index > 0:
+                    alpha_out = str(n_loc)+'\t'+vector_out_sex(alpha_l,n_X)
+                else:
+                    alpha_out = str(n_loc) + '\t' + vector_out(alpha_l,n_X)
             print('finished successfully')
         outfile.write(sid[loc] +'\t'+ str(allele_frq)+'\t'+alpha_out+'\n')
     outfile.close()
