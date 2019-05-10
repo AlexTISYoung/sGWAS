@@ -63,6 +63,13 @@ Options:
 --no_covariate_estimates
    Suppress output of covariate effect estimates
 
+--fit_VC
+    fit variance components for each SNP. Default is to fix variance components at the MLE from the null model (much faster).
+
+--sex_index
+    provide an index (counting from 1) in the covariate file that gives sex coded as 0 for females and 1 for males. Providing an index
+    causes the script to fit separate within and between family effects for men and women
+
 
 **Example Usage**
 
