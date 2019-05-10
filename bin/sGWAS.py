@@ -4,7 +4,6 @@ import numpy as np
 from pysnptools.snpreader import Bed, Pheno
 from scipy.stats import chi2, zscore
 from sibreg import sibreg
-import code
 
 ####### Output functions ##########
 def neglog10pval(x,df):
@@ -29,14 +28,14 @@ def vector_out_sex(alpha_mle,n_X,digits=6):
     alpha_ses = np.sqrt(np.diag(alpha_cov))
     alpha_out = str(round(alpha_est[0],digits))+'\t'+str(round(alpha_ses[0],digits))+'\t'
     alpha_out += str(round(alpha_est[1],digits))+'\t'+str(round(alpha_ses[1],digits))+'\t'
-    alpha_out += str(round(alpha_cov[0,1]/(alpha_ses[0]*alpha_ses[1]),digits))+'\n'
-    alpha_out = str(round(alpha_est[2], digits)) + '\t' + str(round(alpha_ses[2], digits)) + '\t'
+    alpha_out += str(round(alpha_cov[0,1]/(alpha_ses[0]*alpha_ses[1]),digits))+'\t'
+    alpha_out += str(round(alpha_est[2], digits)) + '\t' + str(round(alpha_ses[2], digits)) + '\t'
     alpha_out += str(round(alpha_est[3], digits)) + '\t' + str(round(alpha_ses[3], digits)) + '\t'
     alpha_out += str(round(alpha_cov[2, 3] / (alpha_ses[2] * alpha_ses[3]), digits)) + '\t'
     alpha_out += str(round(alpha_cov[0, 2] / (alpha_ses[0] * alpha_ses[2]), digits)) + '\t'
     alpha_out += str(round(alpha_cov[0, 3] / (alpha_ses[0] * alpha_ses[3]), digits)) + '\t'
     alpha_out += str(round(alpha_cov[1, 3] / (alpha_ses[1] * alpha_ses[3]), digits)) + '\t'
-    alpha_out += str(round(alpha_cov[1, 2] / (alpha_ses[1] * alpha_ses[2]), digits)) + '\t'
+    alpha_out += str(round(alpha_cov[1, 2] / (alpha_ses[1] * alpha_ses[2]), digits)) + '\n'
     return alpha_out
 
 def id_dict_make(ids):
@@ -208,7 +207,7 @@ if __name__ == '__main__':
     if not args.append:
         if args.sex_index < 0:
             header='SNP\tfrequency\tn\tWF\tWF_se\tBF\tBF_se\tr_WF_BF\n'
-        elif args.sex_inex > 0:
+        elif args.sex_index > 0:
             header='SNP\tfrequency\tn\tWF_F\tWF_F_se\tBF_F\tBF_F_se\tr_WF_BF_F\tWF_M\tWF_M_se\tBF_M\tBF_M_se\tr_WF_BF_M' \
                    '\tr_WF_F_WF_M\tr_WF_F_BF_M\tr_BF_F_BF_M\tr_BF_F_WF_M\n'
         else:
