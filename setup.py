@@ -28,7 +28,7 @@ setup(name='sibreg',
             'Programming Language :: Python :: 2.7',
       ],
       keywords='statistics genetics',
-      packages=['sGWAS'],
+      packages=['sibreg'],
       install_requires=[
             'numpy',
             'scipy',
